@@ -15,10 +15,8 @@ NC='\033[0m' # No Color
 ENVIRONMENT=""
 MAINTENANCE=""
 MESSAGE=""
-FORCE_UPDATE=""
-UPDATE_MESSAGE=""
 VERSION=""
-CONFIG=""
+UPDATE_MESSAGE=""
 
 # Function to display usage
 usage() {
@@ -27,17 +25,14 @@ usage() {
     echo "Options:"
     echo "  --maintenance [true|false]  Set maintenance mode"
     echo "  --message \"text\"            Set maintenance message (use \"\" for null)"
-    echo "  --force-update [true|false] Set force update flag"
-    echo "  --update-message \"text\"     Set update message (use \"\" for null)"
     echo "  --version \"x.y.z\"           Set minimum version"
-    echo "  --config \"json\"             Set config object (JSON format)"
+    echo "  --update-message \"text\"     Set update message (use \"\" for null)"
     echo "  --help                      Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 prod --maintenance true --message \"Scheduled maintenance\""
     echo "  $0 dev --maintenance false"
-    echo "  $0 prod --force-update true --update-message \"Critical update required\""
-    echo "  $0 dev --config '{\"testMode\":\"true\"}'"
+    echo "  $0 prod --version \"2.0.0\" --update-message \"Critical update required\""
     exit 1
 }
 
@@ -69,24 +64,12 @@ while [[ $# -gt 0 ]]; do
             MESSAGE="$2"
             shift 2
             ;;
-        --force-update)
-            FORCE_UPDATE="$2"
-            if [ "$FORCE_UPDATE" != "true" ] && [ "$FORCE_UPDATE" != "false" ]; then
-                echo -e "${RED}Error: --force-update must be 'true' or 'false'${NC}"
-                exit 1
-            fi
+        --version)
+            VERSION="$2"
             shift 2
             ;;
         --update-message)
             UPDATE_MESSAGE="$2"
-            shift 2
-            ;;
-        --config)
-            CONFIG="$2"
-            shift 2
-            ;;
-        --version)
-            VERSION="$2"
             shift 2
             ;;
         --help)
@@ -115,29 +98,19 @@ fi
 # Get current values
 CURRENT_MAINTENANCE=$(python3 -c "import json; print(json.load(open('$STATUS_FILE'))['maintenance'])" | tr '[:upper:]' '[:lower:]')
 CURRENT_MESSAGE=$(python3 -c "import json; m=json.load(open('$STATUS_FILE')).get('message'); print(m if m else '')")
-CURRENT_FORCE_UPDATE=$(python3 -c "import json; print(json.load(open('$STATUS_FILE')).get('forceUpdate', False))" | tr '[:upper:]' '[:lower:]')
-CURRENT_UPDATE_MESSAGE=$(python3 -c "import json; m=json.load(open('$STATUS_FILE')).get('updateMessage'); print(m if m else '')")
 CURRENT_VERSION=$(python3 -c "import json; print(json.load(open('$STATUS_FILE'))['minimumVersion'])")
-CURRENT_CONFIG=$(python3 -c "import json; print(json.dumps(json.load(open('$STATUS_FILE')).get('config', {})))")
+CURRENT_UPDATE_MESSAGE=$(python3 -c "import json; m=json.load(open('$STATUS_FILE')).get('updateMessage'); print(m if m else '')")
 
 # Use current values if not specified
 if [ -z "$MAINTENANCE" ]; then
     MAINTENANCE=$CURRENT_MAINTENANCE
 fi
 
-if [ -z "$FORCE_UPDATE" ]; then
-    FORCE_UPDATE=$CURRENT_FORCE_UPDATE
-fi
-
 if [ -z "$VERSION" ]; then
     VERSION=$CURRENT_VERSION
 fi
 
-if [ -z "$CONFIG" ]; then
-    CONFIG=$CURRENT_CONFIG
-fi
-
-# Handle message (empty string means keep current, but we can explicitly set to null)
+# Handle messages (empty string means keep current, but we can explicitly set to null)
 if [ -z "$MESSAGE" ] && [ $# -eq 0 ]; then
     MESSAGE="$CURRENT_MESSAGE"
 fi
@@ -171,10 +144,8 @@ cat > "$STATUS_FILE" << EOF
 {
   "maintenance": $MAINTENANCE,
   "message": $MESSAGE_JSON,
-  "forceUpdate": $FORCE_UPDATE,
-  "updateMessage": $UPDATE_MESSAGE_JSON,
   "minimumVersion": "$VERSION",
-  "config": $CONFIG,
+  "updateMessage": $UPDATE_MESSAGE_JSON,
   "updated": "$TIMESTAMP"
 }
 EOF
@@ -186,10 +157,8 @@ echo "New status:"
 echo -e "${YELLOW}Environment:${NC} $ENVIRONMENT"
 echo -e "${YELLOW}Maintenance:${NC} $MAINTENANCE"
 echo -e "${YELLOW}Message:${NC} $MESSAGE_JSON"
-echo -e "${YELLOW}Force Update:${NC} $FORCE_UPDATE"
-echo -e "${YELLOW}Update Message:${NC} $UPDATE_MESSAGE_JSON"
 echo -e "${YELLOW}Min Version:${NC} $VERSION"
-echo -e "${YELLOW}Config:${NC} $CONFIG"
+echo -e "${YELLOW}Update Message:${NC} $UPDATE_MESSAGE_JSON"
 echo -e "${YELLOW}Updated:${NC} $TIMESTAMP"
 echo ""
 
@@ -205,8 +174,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         if [ "$MESSAGE_JSON" != "null" ]; then
             COMMIT_MSG="$COMMIT_MSG - $MESSAGE"
         fi
-    elif [ "$FORCE_UPDATE" = "true" ]; then
-        COMMIT_MSG="$COMMIT_MSG Force update required"
+    elif [ "$VERSION" != "$CURRENT_VERSION" ] || [ "$UPDATE_MESSAGE_JSON" != "null" ]; then
+        COMMIT_MSG="$COMMIT_MSG Update minimum version to $VERSION"
         if [ "$UPDATE_MESSAGE_JSON" != "null" ]; then
             COMMIT_MSG="$COMMIT_MSG - $UPDATE_MESSAGE"
         fi

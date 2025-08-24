@@ -25,24 +25,26 @@ coffi-status/
 
 ## Status JSON Schema
 
-### Current Implementation
 ```json
 {
   "maintenance": false,              // Boolean: true if app is in maintenance mode
-  "message": null,                   // String or null: Message to display to users
-  "forceUpdate": false,              // Boolean: true to require app update
-  "updateMessage": null,             // String or null: Custom update message
-  "minimumVersion": "1.0.0",         // String: Minimum required app version (future use)
-  "config": {},                      // Object: Additional configuration key-value pairs
+  "message": null,                   // String or null: Message for maintenance mode
+  "minimumVersion": "1.0.0",         // String: Minimum required app version
+  "updateMessage": null,             // String or null: Custom message when update is required
   "updated": "2025-01-24T12:00:00Z"  // ISO 8601 timestamp of last update
 }
 ```
 
-### Maintenance Types in Flutter App
-The Flutter app interprets the status to determine one of three states:
-- **`operational`**: Normal operation (default when no restrictions)
+### How the Flutter App Interprets Status
+
+1. **Check Maintenance**: If `maintenance: true` → Show maintenance screen with `message`
+2. **Check Version**: If app version < `minimumVersion` → Show update screen with `updateMessage`
+3. **Normal Operation**: If neither condition is met → App operates normally
+
+### Status Types
+- **`operational`**: Normal operation (no maintenance, version is OK)
 - **`maintenance`**: When `maintenance: true` - shows maintenance screen
-- **`versionOutdated`**: When `forceUpdate: true` - shows update required screen
+- **`versionOutdated`**: When current app version < `minimumVersion` - shows update required screen
 
 ## Repository Information
 
@@ -50,9 +52,7 @@ The Flutter app interprets the status to determine one of three states:
 - **GitHub Pages**: Enabled on main branch, root folder
 - **Purpose**: Centralized status management for Coffi mobile app
 
-## Access Your Status Page
-
-After GitHub Pages is enabled, your status will be available at:
+## Status URLs
 
 **Production:**
 ```
@@ -64,7 +64,15 @@ https://coffi-app.github.io/coffi-status/status.json
 https://coffi-app.github.io/coffi-status/dev-status.json
 ```
 
-Note: It may take a few minutes for GitHub Pages to deploy initially.
+## Flutter App Configuration
+
+The Flutter app determines which URL to use based on the `MAINTENANCE_URL` environment variable:
+
+```dart
+// In config files:
+// config.dev.json:  "MAINTENANCE_URL": "https://coffi-app.github.io/coffi-status/dev-status.json"
+// config.prod.json: "MAINTENANCE_URL": "https://coffi-app.github.io/coffi-status/status.json"
+```
 
 ## Updating Status
 
@@ -123,27 +131,30 @@ git blame status.json
 
 ## Integration with Flutter App
 
-The Flutter app automatically checks the status based on the environment:
+The Flutter app uses the `MAINTENANCE_URL` environment variable to determine which status file to check.
 
-- **Development builds** (`flutter run --dart-define=ENV=dev`): Uses `dev-status.json`
-- **Production builds**: Uses `status.json`
+### Configuration
+
+Set in your environment config files:
+
+**config.dev.json:**
+```json
+"MAINTENANCE_URL": "https://coffi-app.github.io/coffi-status/dev-status.json"
+```
+
+**config.prod.json:**
+```json
+"MAINTENANCE_URL": "https://coffi-app.github.io/coffi-status/status.json"
+```
 
 The status check is implemented in:
 ```
 modules/flutter/lib/src/features/maintenance/presentation/controllers/maintenance_controller.dart
 ```
 
-### Environment-Specific URLs
-
-```dart
-// The controller automatically selects the correct URL based on environment
-const String _cdnStatusUrlProd = 'https://coffi-app.github.io/coffi-status/status.json';
-const String _cdnStatusUrlDev = 'https://coffi-app.github.io/coffi-status/dev-status.json';
-```
-
 ## Status Field Descriptions
 
-### Core Fields
+### Field Descriptions
 
 #### `maintenance`
 - **Type**: Boolean
@@ -152,35 +163,25 @@ const String _cdnStatusUrlDev = 'https://coffi-app.github.io/coffi-status/dev-st
 
 #### `message`
 - **Type**: String or null
-- **Purpose**: Display message when in maintenance mode
+- **Purpose**: Message displayed during maintenance mode
 - **Examples**:
   - "Scheduled maintenance on Jan 25, 2PM-4PM EST"
   - "We're upgrading our servers. Back in 30 minutes!"
   - "Service disruption: We're working on a fix"
 
-#### `forceUpdate`
-- **Type**: Boolean
-- **Purpose**: When `true`, requires users to update the app
-- **Use case**: Critical security updates, breaking API changes
+#### `minimumVersion`
+- **Type**: String (semantic version)
+- **Purpose**: Minimum required app version - app compares its version against this
+- **Format**: "MAJOR.MINOR.PATCH" (e.g., "1.2.3")
+- **Behavior**: If current app version < minimumVersion, update screen is shown
 
 #### `updateMessage`
 - **Type**: String or null
-- **Purpose**: Custom message shown when update is required
-- **Default**: "Please update your app to the latest version."
+- **Purpose**: Custom message shown when app version is below minimum
+- **Default**: App will use a default message if null
 - **Examples**:
-  - "Critical security update required. Please update immediately."
-  - "New version required for continued service."
-
-#### `minimumVersion`
-- **Type**: String (semantic version)
-- **Purpose**: Minimum app version (reserved for future use)
-- **Format**: "MAJOR.MINOR.PATCH" (e.g., "1.2.3")
-- **Note**: Currently not enforced by the app
-
-#### `config`
-- **Type**: Object
-- **Purpose**: Additional configuration key-value pairs
-- **Example**: `{"maxUploadSize": "10MB", "featureFlag": "enabled"}`
+  - "Critical security update required. Please update to version 2.0.0 or higher."
+  - "This version is no longer supported. Please update from the App Store."
 
 #### `updated`
 - **Type**: ISO 8601 timestamp
@@ -203,7 +204,7 @@ fvm flutter run --dart-define=ENV=dev
 ### 2. Test Version Enforcement
 ```bash
 # Set minimum version higher than current
-./update-status.sh dev --version "99.0.0" --message "Please update to continue"
+./update-status.sh dev --version "99.0.0" --update-message "Please update to continue"
 ```
 
 ### 3. Test Normal Operation
@@ -219,36 +220,31 @@ fvm flutter run --dart-define=ENV=dev
 {
   "maintenance": true,
   "message": "We're upgrading our servers. Back in 30 minutes!",
-  "forceUpdate": false,
-  "updateMessage": null,
   "minimumVersion": "1.0.0",
-  "config": {},
+  "updateMessage": null,
   "updated": "2025-01-24T14:30:00Z"
 }
 ```
 
-### Force Update
+### Force Update (Version-Based)
 ```json
 {
   "maintenance": false,
   "message": null,
-  "forceUpdate": true,
-  "updateMessage": "Critical security update required. Please update your app.",
   "minimumVersion": "2.0.0",
-  "config": {},
+  "updateMessage": "Critical security update required. Please update to version 2.0.0 or higher.",
   "updated": "2025-01-24T10:00:00Z"
 }
 ```
+*App will compare its version against minimumVersion and show update screen if needed*
 
 ### Normal Operation
 ```json
 {
   "maintenance": false,
   "message": null,
-  "forceUpdate": false,
-  "updateMessage": null,
   "minimumVersion": "1.0.0",
-  "config": {},
+  "updateMessage": null,
   "updated": "2025-01-24T12:00:00Z"
 }
 ```
@@ -258,10 +254,8 @@ fvm flutter run --dart-define=ENV=dev
 {
   "maintenance": true,
   "message": "System maintenance in progress",
-  "forceUpdate": true,
-  "updateMessage": "Update required after maintenance",
   "minimumVersion": "2.0.0",
-  "config": {},
+  "updateMessage": "Update required after maintenance completes",
   "updated": "2025-01-24T14:30:00Z"
 }
 ```
