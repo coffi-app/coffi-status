@@ -14,8 +14,10 @@ The status page provides:
 
 ```
 coffi-status/
-├── status.json          # Main status file
+├── status.json          # Production status file
+├── dev-status.json      # Development environment status file
 ├── README.md           # This file
+├── update-status.sh    # Script to update status files
 └── .github/
     └── workflows/
         └── deploy.yml  # GitHub Actions deployment workflow
@@ -64,21 +66,43 @@ git push -u origin main
 ### 4. Access Your Status Page
 
 After GitHub Pages is enabled, your status will be available at:
+
+**Production:**
 ```
-https://[username].github.io/coffi-status/status.json
+https://coffi-app.github.io/coffi-status/status.json
+```
+
+**Development:**
+```
+https://coffi-app.github.io/coffi-status/dev-status.json
 ```
 
 Note: It may take a few minutes for GitHub Pages to deploy initially.
 
 ## Updating Status
 
+### Quick Update Script
+
+Use the provided script to update status files:
+
+```bash
+# Update production status
+./update-status.sh prod --maintenance true --message "Scheduled maintenance"
+
+# Update development status
+./update-status.sh dev --maintenance false --message "Testing new features"
+
+# Clear maintenance mode
+./update-status.sh prod --maintenance false
+```
+
 ### Manual Update
 
-1. Edit `status.json` with the new values
+1. Edit `status.json` or `dev-status.json` with the new values
 2. Update the `updated` timestamp
 3. Commit and push to main branch:
 ```bash
-git add status.json
+git add status.json dev-status.json
 git commit -m "Update status: [description]"
 git push
 ```
@@ -89,32 +113,22 @@ The repository includes a GitHub Actions workflow that can be triggered manually
 
 ## Integration with Flutter App
 
-In your Flutter app, fetch the status on startup:
+The Flutter app automatically checks the status based on the environment:
+
+- **Development builds** (`flutter run --dart-define=ENV=dev`): Uses `dev-status.json`
+- **Production builds**: Uses `status.json`
+
+The status check is implemented in:
+```
+modules/flutter/lib/src/features/maintenance/presentation/controllers/maintenance_controller.dart
+```
+
+### Environment-Specific URLs
 
 ```dart
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-Future<Map<String, dynamic>> checkAppStatus() async {
-  try {
-    final response = await http.get(
-      Uri.parse('https://[username].github.io/coffi-status/status.json'),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    }
-  } catch (e) {
-    // Handle error - default to allowing app to run
-    print('Could not fetch status: $e');
-  }
-  
-  return {
-    'maintenance': false,
-    'message': null,
-    'minimumVersion': '1.0.0',
-  };
-}
+// The controller automatically selects the correct URL based on environment
+const String _cdnStatusUrlProd = 'https://coffi-app.github.io/coffi-status/status.json';
+const String _cdnStatusUrlDev = 'https://coffi-app.github.io/coffi-status/dev-status.json';
 ```
 
 ## Status Field Descriptions
@@ -141,6 +155,30 @@ Future<Map<String, dynamic>> checkAppStatus() async {
 - **Type**: ISO 8601 timestamp
 - **Purpose**: Track when the status was last modified
 - **Format**: "YYYY-MM-DDTHH:MM:SSZ"
+
+## Testing in Development
+
+### 1. Test Maintenance Mode
+```bash
+# Enable maintenance in dev environment
+./update-status.sh dev --maintenance true --message "Testing maintenance mode"
+
+# Run your Flutter app in dev mode
+cd ../../flutter
+fvm flutter run --dart-define=ENV=dev
+```
+
+### 2. Test Version Enforcement
+```bash
+# Set minimum version higher than current
+./update-status.sh dev --version "99.0.0" --message "Please update to continue"
+```
+
+### 3. Test Normal Operation
+```bash
+# Clear all restrictions
+./update-status.sh dev --maintenance false --version "1.0.0"
+```
 
 ## Example Scenarios
 
