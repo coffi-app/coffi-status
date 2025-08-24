@@ -1,5 +1,5 @@
 {
-  "maintenance": false,
+  "maintenance": true,
   "message": "This is a test maintenance.",
   "minimumVersion": "1.0.1",
   "updateMessage": "This is a test unsupported version message.",
