@@ -1,0 +1,67 @@
+name: Update Status
+
+on:
+  workflow_dispatch:
+    inputs:
+      maintenance:
+        description: 'Maintenance mode (true/false)'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      message:
+        description: 'Status message (leave empty for null)'
+        required: false
+        type: string
+      minimumVersion:
+        description: 'Minimum app version'
+        required: true
+        default: '1.0.0'
+        type: string
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Update status.json
+        run: |
+          # Parse inputs
+          MAINTENANCE="${{ github.event.inputs.maintenance }}"
+          MESSAGE="${{ github.event.inputs.message }}"
+          MIN_VERSION="${{ github.event.inputs.minimumVersion }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          # Handle empty message
+          if [ -z "$MESSAGE" ]; then
+            MESSAGE_JSON="null"
+          else
+            MESSAGE_JSON="\"$MESSAGE\""
+          fi
+          
+          # Create updated status.json
+          cat > status.json << EOF
+          {
+            "maintenance": $MAINTENANCE,
+            "message": $MESSAGE_JSON,
+            "minimumVersion": "$MIN_VERSION",
+            "updated": "$TIMESTAMP"
+          }
+          EOF
+          
+          # Display the updated content
+          echo "Updated status.json:"
+          cat status.json
+          
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add status.json
+          git commit -m "Update status: maintenance=${{ github.event.inputs.maintenance }}, version=${{ github.event.inputs.minimumVersion }}"
+          git push
