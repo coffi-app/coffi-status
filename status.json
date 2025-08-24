@@ -1,7 +1,7 @@
 {
   "maintenance": false,
-  "message": null,
+  "message": "We are performing some scheduled maintenance on our database. This will take a few minutes. Thank you for your patience.",
   "minimumVersion": "1.0.0",
-  "updateMessage": null,
+  "updateMessage": "This version is no longer supported. Please update to the latest version using the button below.",
   "updated": "2025-01-24T17:00:00Z"
 }
