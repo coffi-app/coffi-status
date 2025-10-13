@@ -3,5 +3,6 @@
   "message": "This is a test maintenance.",
   "minimumVersion": "1.0.0",
   "updateMessage": "This is a test unsupported version message.",
-  "updated": "2025-01-24T17:00:00Z"
+  "updated": "2025-01-24T17:00:00Z",
+  "paywallEnabled": true
 }
