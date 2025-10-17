@@ -5,5 +5,5 @@
   "updateMessage": "This is a test unsupported version message.",
   "updated": "2025-01-24T17:00:00Z",
   "paywallEnabled": true,
-  "versionsToForcePaywall": ["1.1.1"]
+  "versionsToForcePaywall": ["1.1.1", "1.1.2"]
 }
