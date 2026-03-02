@@ -1,9 +1,12 @@
 {
   "maintenance": false,
-  "message": "This is a test maintenance.",
+  "message": "This is a test maintenance!",
   "minimumVersion": "1.0.0",
   "updateMessage": "This is a test unsupported version message.",
-  "updated": "2025-01-24T17:00:00Z",
+  "updated": "2026-03-02T00:30:47.201Z",
   "paywallEnabled": true,
-  "versionsToForcePaywall": ["1.1.1", "1.1.2"]
+  "versionsToForcePaywall": [
+    "1.1.1",
+    "1.1.2"
+  ]
 }
