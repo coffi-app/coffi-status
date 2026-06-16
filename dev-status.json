@@ -3,10 +3,11 @@
   "message": "This is a test maintenance!",
   "minimumVersion": "1.0.0",
   "updateMessage": "This is a test unsupported version message.",
-  "updated": "2026-03-02T00:30:47.201Z",
+  "updated": "2026-06-16T02:47:25.723Z",
   "paywallEnabled": true,
   "versionsToForcePaywall": [
     "1.1.1",
     "1.1.2"
-  ]
+  ],
+  "marketplaceEnabled": true
 }
