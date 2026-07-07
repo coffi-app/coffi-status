@@ -1,13 +1,10 @@
 {
   "maintenance": false,
-  "message": "This is a test maintenance!",
+  "message": "We are performing some scheduled maintenance on our database. This will take a few minutes. Thank you for your patience.",
   "minimumVersion": "1.0.0",
-  "updateMessage": "This is a test unsupported version message.",
-  "updated": "2026-06-17T02:30:32.630Z",
+  "updateMessage": "This version is no longer supported. Please update to the latest version using the button below.",
+  "updated": "2026-07-07T14:54:45.526Z",
   "paywallEnabled": true,
-  "versionsToForcePaywall": [
-    "1.1.1",
-    "1.1.2"
-  ],
+  "versionsToForcePaywall": [],
   "marketplaceEnabled": false
 }
