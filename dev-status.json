@@ -3,8 +3,9 @@
   "message": "We are performing some scheduled maintenance on our database. This will take a few minutes. Thank you for your patience.",
   "minimumVersion": "1.0.0",
   "updateMessage": "This version is no longer supported. Please update to the latest version using the button below.",
-  "updated": "2026-07-07T14:54:45.526Z",
+  "updated": "2026-09-12T23:59:20.000Z",
   "paywallEnabled": true,
   "versionsToForcePaywall": [],
-  "marketplaceEnabled": true
+  "marketplaceEnabled": true,
+  "coffeeSubscriptionEnabled": true
 }
