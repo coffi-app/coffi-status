@@ -10,5 +10,6 @@
   "coffeeSubscriptionEnabled": false,
   "coldBrewRecipesEnabled": true,
   "mokaPotRecipesEnabled": true,
-  "switchStepsEnabled": true
+  "switchStepsEnabled": true,
+  "bagLevelsEnabled": true
 }
