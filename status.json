@@ -7,6 +7,7 @@
   "paywallEnabled": true,
   "versionsToForcePaywall": [],
   "marketplaceEnabled": true,
+  "coffeeSubscriptionEnabled": false,
   "coldBrewRecipesEnabled": true,
   "mokaPotRecipesEnabled": true,
   "switchStepsEnabled": true
