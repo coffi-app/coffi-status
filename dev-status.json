@@ -11,5 +11,6 @@
   "coldBrewRecipesEnabled": true,
   "mokaPotRecipesEnabled": true,
   "switchStepsEnabled": true,
-  "bagLevelsEnabled": true
+  "bagLevelsEnabled": true,
+  "gearTagsEnabled": true
 }
