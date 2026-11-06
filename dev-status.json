@@ -12,5 +12,6 @@
   "mokaPotRecipesEnabled": true,
   "switchStepsEnabled": true,
   "bagLevelsEnabled": true,
-  "gearTagsEnabled": true
+  "gearTagsEnabled": true,
+  "spotsEnabled": true
 }
